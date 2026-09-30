@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>할 일 목록</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <h1>할 일 목록</h1>
+
+    <!-- 할 일 입력 영역 -->
+    <div class="input-row">
+      <input id="todo-input" type="text" placeholder="할 일을 입력하세요" autocomplete="off">
+      <button id="add-button" type="button">추가</button>
+    </div>
+
+    <!-- 할 일이 여기에 추가됩니다 -->
+    <ul id="todo-list"></ul>
+
+    <p id="empty-message">아직 할 일이 없어요.</p>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
