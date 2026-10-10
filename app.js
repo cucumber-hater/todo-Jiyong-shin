@@ -65,6 +65,10 @@ function createTodoItem(todo) {
   const span = document.createElement("span");
   span.className = "todo-text";
   span.textContent = todo.title;
+  span.title = "더블클릭하면 고칠 수 있어요";
+  span.addEventListener("dblclick", function () {
+    startEdit(todo, span);
+  });
 
   // 글자 아래에 작성자, 마감일 같은 작은 정보를 보여 줍니다.
   const body = document.createElement("div");
@@ -96,6 +100,63 @@ function createTodoItem(todo) {
 
   item.append(checkbox, body, deleteButton);
   return item;
+}
+
+// 할 일 글자를 입력칸으로 바꿔서 고칠 수 있게 합니다.
+function startEdit(todo, span) {
+  const editInput = document.createElement("input");
+  editInput.type = "text";
+  editInput.className = "edit-input";
+  editInput.value = todo.title;
+
+  span.replaceWith(editInput);
+  editInput.focus();
+  editInput.select();
+
+  let finished = false; // 저장/취소가 두 번 실행되지 않게 막는 표시
+
+  function finish(save) {
+    if (finished) {
+      return;
+    }
+    finished = true;
+
+    const newTitle = editInput.value.trim();
+    // 취소했거나, 빈칸이거나, 바뀐 게 없으면 원래 글자로 되돌립니다.
+    if (!save || newTitle === "" || newTitle === todo.title) {
+      editInput.replaceWith(span);
+      return;
+    }
+    updateTitle(todo, newTitle);
+  }
+
+  editInput.addEventListener("keydown", function (event) {
+    // 한글 조합 중에 누른 Enter/Esc는 무시합니다. (글자 조합을 끝내는 키라서)
+    if (event.isComposing || event.keyCode === 229) {
+      return;
+    }
+    if (event.key === "Enter") {
+      finish(true); // Enter = 저장
+    } else if (event.key === "Escape") {
+      finish(false); // Esc = 취소
+    }
+  });
+
+  // 다른 곳을 클릭해서 입력칸을 벗어나도 저장합니다.
+  editInput.addEventListener("blur", function () {
+    finish(true);
+  });
+}
+
+// 고친 할 일 글자를 저장합니다.
+async function updateTitle(todo, title) {
+  const { error } = await db.from("todos").update({ title: title }).eq("id", todo.id);
+  if (error) {
+    showError("할 일을 고치지 못했어요: " + error.message);
+    render(); // 원래 글자로 되돌림
+    return;
+  }
+  await loadTodos();
 }
 
 // 할 일을 하나 추가합니다.

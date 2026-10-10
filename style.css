@@ -101,6 +101,18 @@ h1 {
 
 .todo-text {
   word-break: break-all;
+  cursor: text;
+}
+
+/* 더블클릭해서 고칠 때 나타나는 입력칸 */
+.edit-input {
+  width: 100%;
+  padding: 4px 8px;
+  font-size: 16px;
+  font-family: inherit;
+  border: 1px solid #4f7cff;
+  border-radius: 6px;
+  outline: none;
 }
 
 .todo-meta {
