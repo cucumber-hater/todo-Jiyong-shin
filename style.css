@@ -27,18 +27,28 @@ h1 {
 /* 입력칸 + 추가 버튼 */
 .input-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
-#todo-input {
-  flex: 1;
+.input-row input {
+  min-width: 0;
   padding: 10px 12px;
   font-size: 16px;
   border: 1px solid #ccc;
   border-radius: 8px;
 }
 
-#todo-input:focus {
+/* 할 일 입력칸은 한 줄을 다 쓰고, 나머지는 아랫줄에 */
+#todo-input {
+  flex: 1 1 100%;
+}
+
+#author-input {
+  flex: 1;
+}
+
+.input-row input:focus {
   outline: none;
   border-color: #4f7cff;
 }
@@ -78,9 +88,20 @@ h1 {
   cursor: pointer;
 }
 
-.todo-text {
+/* 할 일 글자 + 작성자 등 작은 정보 */
+.todo-body {
   flex: 1;
+  min-width: 0;
+}
+
+.todo-text {
   word-break: break-all;
+}
+
+.todo-meta {
+  margin-top: 2px;
+  font-size: 13px;
+  color: #888;
 }
 
 /* 완료된 할 일은 줄을 긋고 흐리게 */

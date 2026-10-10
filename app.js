@@ -3,6 +3,7 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // 화면에서 필요한 요소들을 찾아 둡니다.
 const input = document.getElementById("todo-input");
+const authorInput = document.getElementById("author-input");
 const addButton = document.getElementById("add-button");
 const list = document.getElementById("todo-list");
 const emptyMessage = document.getElementById("empty-message");
@@ -61,6 +62,18 @@ function createTodoItem(todo) {
   span.className = "todo-text";
   span.textContent = todo.title;
 
+  // 글자 아래에 작성자 같은 작은 정보를 보여 줍니다.
+  const body = document.createElement("div");
+  body.className = "todo-body";
+  body.append(span);
+
+  if (todo.author) {
+    const meta = document.createElement("div");
+    meta.className = "todo-meta";
+    meta.textContent = "작성자: " + todo.author;
+    body.append(meta);
+  }
+
   // 삭제 버튼
   const deleteButton = document.createElement("button");
   deleteButton.type = "button";
@@ -70,7 +83,7 @@ function createTodoItem(todo) {
     deleteTodo(todo);
   });
 
-  item.append(checkbox, span, deleteButton);
+  item.append(checkbox, body, deleteButton);
   return item;
 }
 
@@ -81,12 +94,16 @@ async function addTodo() {
     return; // 빈 칸이면 아무것도 하지 않음
   }
 
-  const { error } = await db.from("todos").insert({ title: title });
+  // 작성자는 비워도 돼요. 비어 있으면 null(값 없음)로 저장합니다.
+  const author = authorInput.value.trim() || null;
+
+  const { error } = await db.from("todos").insert({ title: title, author: author });
   if (error) {
     showError("할 일을 추가하지 못했어요: " + error.message);
     return;
   }
 
+  // 할 일 칸만 비웁니다. 작성자 이름은 다음에도 쓰도록 그대로 둬요.
   input.value = "";
   input.focus();
   await loadTodos();
@@ -115,7 +132,8 @@ async function deleteTodo(todo) {
 
 addButton.addEventListener("click", addTodo);
 
-input.addEventListener("keydown", function (event) {
+// 입력칸에서 Enter를 누르면 추가합니다.
+function addOnEnter(event) {
   if (event.key !== "Enter") {
     return;
   }
@@ -125,6 +143,9 @@ input.addEventListener("keydown", function (event) {
     return;
   }
   addTodo();
-});
+}
+
+input.addEventListener("keydown", addOnEnter);
+authorInput.addEventListener("keydown", addOnEnter);
 
 loadTodos();
