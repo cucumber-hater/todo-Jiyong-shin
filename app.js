@@ -4,6 +4,7 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // 화면에서 필요한 요소들을 찾아 둡니다.
 const input = document.getElementById("todo-input");
 const authorInput = document.getElementById("author-input");
+const dueInput = document.getElementById("due-input");
 const addButton = document.getElementById("add-button");
 const list = document.getElementById("todo-list");
 const emptyMessage = document.getElementById("empty-message");
@@ -19,11 +20,14 @@ function showError(message) {
 }
 
 // Supabase에서 할 일 목록을 가져옵니다.
+// 정렬: 마감일이 가까운 순 → (마감일이 없거나 같으면) 먼저 만든 순
 async function loadTodos() {
   const { data, error } = await db
     .from("todos")
     .select("*")
-    .order("created_at", { ascending: true });
+    .order("due_date", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: true })
+    .order("id", { ascending: true });
 
   if (error) {
     showError("할 일을 불러오지 못했어요: " + error.message);
@@ -62,15 +66,22 @@ function createTodoItem(todo) {
   span.className = "todo-text";
   span.textContent = todo.title;
 
-  // 글자 아래에 작성자 같은 작은 정보를 보여 줍니다.
+  // 글자 아래에 작성자, 마감일 같은 작은 정보를 보여 줍니다.
   const body = document.createElement("div");
   body.className = "todo-body";
   body.append(span);
 
+  const metaParts = [];
   if (todo.author) {
+    metaParts.push("작성자: " + todo.author);
+  }
+  if (todo.due_date) {
+    metaParts.push("마감: " + todo.due_date);
+  }
+  if (metaParts.length > 0) {
     const meta = document.createElement("div");
     meta.className = "todo-meta";
-    meta.textContent = "작성자: " + todo.author;
+    meta.textContent = metaParts.join(" · ");
     body.append(meta);
   }
 
@@ -96,15 +107,20 @@ async function addTodo() {
 
   // 작성자는 비워도 돼요. 비어 있으면 null(값 없음)로 저장합니다.
   const author = authorInput.value.trim() || null;
+  // 마감일도 비워도 돼요. (날짜 칸 값은 "2026-10-31" 같은 모양)
+  const dueDate = dueInput.value || null;
 
-  const { error } = await db.from("todos").insert({ title: title, author: author });
+  const { error } = await db
+    .from("todos")
+    .insert({ title: title, author: author, due_date: dueDate });
   if (error) {
     showError("할 일을 추가하지 못했어요: " + error.message);
     return;
   }
 
-  // 할 일 칸만 비웁니다. 작성자 이름은 다음에도 쓰도록 그대로 둬요.
+  // 할 일과 마감일 칸은 비웁니다. 작성자 이름은 다음에도 쓰도록 그대로 둬요.
   input.value = "";
+  dueInput.value = "";
   input.focus();
   await loadTodos();
 }
