@@ -104,6 +104,21 @@ h1 {
   background: #e5484d;
 }
 
+/* 오류 안내 */
+#error-message {
+  margin: 16px 0 0;
+  padding: 10px 12px;
+  color: #b42318;
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+  border-radius: 8px;
+}
+
+#error-message[hidden],
+#empty-message[hidden] {
+  display: none;
+}
+
 #empty-message {
   margin: 20px 0 0;
   text-align: center;
