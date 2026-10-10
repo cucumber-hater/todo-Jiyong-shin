@@ -72,10 +72,52 @@ h1 {
   background: #3a66e6;
 }
 
+/* 필터 버튼 + 남은 개수 */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.filters {
+  display: flex;
+  gap: 6px;
+}
+
+.filter-button {
+  padding: 6px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #555;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.filter-button:hover {
+  border-color: #4f7cff;
+}
+
+/* 고른 버튼은 파란색으로 */
+.filter-button[aria-pressed="true"] {
+  color: #fff;
+  background: #4f7cff;
+  border-color: #4f7cff;
+}
+
+#remaining-count {
+  font-size: 14px;
+  color: #666;
+}
+
 /* 할 일 목록 */
 #todo-list {
   list-style: none;
-  margin: 20px 0 0;
+  margin: 12px 0 0;
   padding: 0;
 }
 

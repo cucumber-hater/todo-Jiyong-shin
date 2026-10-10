@@ -9,9 +9,14 @@ const addButton = document.getElementById("add-button");
 const list = document.getElementById("todo-list");
 const emptyMessage = document.getElementById("empty-message");
 const errorMessage = document.getElementById("error-message");
+const remainingCount = document.getElementById("remaining-count");
+const filterButtons = document.querySelectorAll(".filter-button");
 
 // Supabase에서 가져온 할 일들을 담아 두는 곳
 let todos = [];
+
+// 지금 고른 보기: "all"(전체), "active"(진행 중), "done"(완료)
+let currentFilter = "all";
 
 // 오류를 화면에 보여 줍니다. (빈 값을 주면 오류 칸을 숨겨요)
 function showError(message) {
@@ -40,12 +45,46 @@ async function loadTodos() {
 
 // todos 배열을 보고 화면의 목록을 다시 그립니다.
 function render() {
+  // 고른 보기에 맞는 할 일만 골라냅니다. (Supabase에 다시 묻지 않고 화면에서 고름)
+  const visibleTodos = todos.filter(function (todo) {
+    if (currentFilter === "active") return !todo.done;
+    if (currentFilter === "done") return todo.done;
+    return true;
+  });
+
   list.innerHTML = "";
-  for (const todo of todos) {
+  for (const todo of visibleTodos) {
     list.append(createTodoItem(todo));
   }
-  emptyMessage.hidden = todos.length > 0;
+
+  // 목록이 비었을 때 안내 문구
+  if (todos.length === 0) {
+    emptyMessage.textContent = "아직 할 일이 없어요.";
+  } else {
+    emptyMessage.textContent = "여기에 보여 줄 할 일이 없어요.";
+  }
+  emptyMessage.hidden = visibleTodos.length > 0;
+
+  // 남은(완료하지 않은) 할 일 개수
+  const remaining = todos.filter(function (todo) {
+    return !todo.done;
+  }).length;
+  remainingCount.textContent = "남은 할 일 " + remaining + "개";
+
+  // 고른 필터 버튼에 표시를 해 둡니다. (CSS가 색으로 구분해 줘요)
+  filterButtons.forEach(function (button) {
+    const selected = button.dataset.filter === currentFilter;
+    button.setAttribute("aria-pressed", String(selected));
+  });
 }
+
+// 필터 버튼을 누르면 보기를 바꿉니다.
+filterButtons.forEach(function (button) {
+  button.addEventListener("click", function () {
+    currentFilter = button.dataset.filter;
+    render();
+  });
+});
 
 // 할 일 하나를 화면에 보여 줄 <li>를 만듭니다.
 function createTodoItem(todo) {
