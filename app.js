@@ -97,7 +97,7 @@ function createTodoItem(todo) {
   checkbox.type = "checkbox";
   checkbox.checked = todo.done;
   checkbox.addEventListener("change", function () {
-    toggleTodo(todo, checkbox.checked);
+    toggleTodo(todo, checkbox.checked, checkbox);
   });
 
   // 할 일 글자 (textContent를 써서 입력한 글자가 그대로 보이게 함)
@@ -226,14 +226,57 @@ async function addTodo() {
 }
 
 // 완료 여부를 바꿉니다.
-async function toggleTodo(todo, done) {
+async function toggleTodo(todo, done, checkbox) {
+  // 목록을 다시 그리면 체크박스가 새로 만들어지므로, 색종이 터질 위치를 미리 기억해 둡니다.
+  const origin = getConfettiOrigin(checkbox);
+
   const { error } = await db.from("todos").update({ done: done }).eq("id", todo.id);
   if (error) {
     showError("완료 표시를 바꾸지 못했어요: " + error.message);
     render(); // 체크박스를 원래 상태로 되돌림
     return;
   }
+
+  // 완료로 바꿨을 때만 축하합니다. (체크를 풀 때는 안 터져요)
+  if (done) {
+    celebrate(origin, false);
+  }
+
   await loadTodos();
+
+  // 방금 것으로 남은 할 일이 0개가 되면 크게 축하!
+  const allDone = todos.length > 0 && todos.every(function (t) {
+    return t.done;
+  });
+  if (done && allDone) {
+    celebrate(origin, true);
+  }
+}
+
+// 화면 속 요소의 가운데 위치를 색종이 도구가 쓰는 모양(0~1 사이 비율)으로 바꿉니다.
+function getConfettiOrigin(element) {
+  const rect = element.getBoundingClientRect();
+  return {
+    x: (rect.left + rect.width / 2) / window.innerWidth,
+    y: (rect.top + rect.height / 2) / window.innerHeight,
+  };
+}
+
+// 색종이를 터뜨립니다. big이 true면 크게, false면 작게.
+function celebrate(origin, big) {
+  // 인터넷 문제로 색종이 도구를 못 불러왔으면 조용히 넘어갑니다.
+  if (typeof confetti !== "function") {
+    return;
+  }
+  confetti({
+    origin: origin,
+    particleCount: big ? 160 : 40,
+    spread: big ? 120 : 60,
+    startVelocity: big ? 45 : 25,
+    scalar: big ? 1 : 0.8,
+    // 컴퓨터에서 "애니메이션 줄이기"를 켠 사람에게는 보여 주지 않아요.
+    disableForReducedMotion: true,
+  });
 }
 
 // 할 일을 지웁니다.
